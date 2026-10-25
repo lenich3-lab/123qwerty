@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#18191b">
+  <title>Пикалка — маленький генератор радости</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <main class="device">
+    <header><a class="brand" href="./">пикалка<span>®</span></a><span class="edition">POCKET NOISE MACHINE / 001</span></header>
+    <section class="intro"><span class="eyebrow">НИЧЕГО ЛИШНЕГО. ТОЛЬКО ЗВУК.</span><h1>Иногда нужно<br>просто <em>пикнуть.</em></h1><p>Для важных мыслей, маленьких побед<br>и совершенно без причины.</p></section>
+    <section class="console" aria-label="Генератор звука">
+      <div class="display"><span class="display-label"><i id="lamp"></i><span id="status" role="status">ГОТОВА ПИКАТЬ</span></span><svg class="wave" viewBox="0 0 240 44" aria-hidden="true"><path d="M0 22H55L65 22L72 5L82 39L92 12L102 32L112 18L122 25L132 22H240"/></svg><span class="frequency"><strong id="frequency">640</strong> Hz</span></div>
+      <div class="button-area"><button id="beep" class="beep" aria-label="Пикнуть"><span>ПИК</span><span class="button-hint">НАЖМИ МЕНЯ</span></button><span class="space-hint"><kbd>ПРОБЕЛ</kbd> тоже работает</span></div>
+      <div class="controls"><div class="control-heading"><label for="pitch">ВЫСОТА ЗВУКА</label><span>ниже ↔ выше</span></div><input id="pitch" type="range" min="160" max="1600" step="10" value="640"><div class="control-heading volume-heading"><label for="volume">ГРОМКОСТЬ</label><output id="volume-value" for="volume">25%</output></div><input id="volume" type="range" min="0" max="60" value="25"><fieldset><legend>ИЛИ ПОПРОБУЙ ТАК</legend><div class="presets"><button data-sound="coin">✦ Монетка</button><button data-sound="robot">⌁ Робот</button><button data-sound="ufo">◉ НЛО</button></div></fieldset></div>
+      <footer class="console-footer"><span>● WEB AUDIO INSIDE</span><span><strong id="count">000</strong> ПИКОВ В ЭТОЙ СЕССИИ</span></footer>
+    </section>
+    <footer class="page-footer"><span>Сделано, чтобы ничего не усложнять.</span><span>Звук включается после нажатия ↗</span></footer>
+  </main>
+</body>
+</html>
