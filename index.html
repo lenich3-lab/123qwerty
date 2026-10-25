@@ -3,22 +3,48 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#18191b">
-  <title>Пикалка — маленький генератор радости</title>
+  <meta name="theme-color" content="#f6f2e9">
+  <meta name="description" content="Маленькая пауза для доброты. Тихий звук, тёплые слова и одно простое действие для себя или другого человека.">
+  <title>Чуть добрее — пикалка с теплом</title>
   <link rel="stylesheet" href="style.css">
   <script src="app.js" defer></script>
 </head>
 <body>
-  <main class="device">
-    <header><a class="brand" href="./">пикалка<span>®</span></a><span class="edition">POCKET NOISE MACHINE / 001</span></header>
-    <section class="intro"><span class="eyebrow">НИЧЕГО ЛИШНЕГО. ТОЛЬКО ЗВУК.</span><h1>Иногда нужно<br>просто <em>пикнуть.</em></h1><p>Для важных мыслей, маленьких побед<br>и совершенно без причины.</p></section>
-    <section class="console" aria-label="Генератор звука">
-      <div class="display"><span class="display-label"><i id="lamp"></i><span id="status" role="status">ГОТОВА ПИКАТЬ</span></span><svg class="wave" viewBox="0 0 240 44" aria-hidden="true"><path d="M0 22H55L65 22L72 5L82 39L92 12L102 32L112 18L122 25L132 22H240"/></svg><span class="frequency"><strong id="frequency">640</strong> Hz</span></div>
-      <div class="button-area"><button id="beep" class="beep" aria-label="Пикнуть"><span>ПИК</span><span class="button-hint">НАЖМИ МЕНЯ</span></button><span class="space-hint"><kbd>ПРОБЕЛ</kbd> тоже работает</span></div>
-      <div class="controls"><div class="control-heading"><label for="pitch">ВЫСОТА ЗВУКА</label><span>ниже ↔ выше</span></div><input id="pitch" type="range" min="160" max="1600" step="10" value="640"><div class="control-heading volume-heading"><label for="volume">ГРОМКОСТЬ</label><output id="volume-value" for="volume">25%</output></div><input id="volume" type="range" min="0" max="60" value="25"><fieldset><legend>ИЛИ ПОПРОБУЙ ТАК</legend><div class="presets"><button data-sound="coin">✦ Монетка</button><button data-sound="robot">⌁ Робот</button><button data-sound="ufo">◉ НЛО</button></div></fieldset></div>
-      <footer class="console-footer"><span>● WEB AUDIO INSIDE</span><span><strong id="count">000</strong> ПИКОВ В ЭТОЙ СЕССИИ</span></footer>
-    </section>
-    <footer class="page-footer"><span>Сделано, чтобы ничего не усложнять.</span><span>Звук включается после нажатия ↗</span></footer>
-  </main>
+  <div class="page">
+    <header class="header">
+      <a href="./" class="brand"><span class="brand-flower" aria-hidden="true">✳︎</span> чуть добрее<span class="brand-dot">.</span></a>
+      <span class="header-note">маленькая пикалка с большим теплом</span>
+      <button id="mute" class="mute" aria-pressed="false">♫ <span>Звук включён</span></button>
+    </header>
+    <main>
+      <section class="hero" aria-labelledby="title">
+        <div class="intro">
+          <span class="eyebrow"><span></span> НАЧНЁМ С МАЛЕНЬКОГО</span>
+          <h1 id="title">Мир мягче,<br>когда мы<br><em>чуть добрее.</em></h1>
+          <p class="intro-text">Иногда между раздражением и тёплым словом<br class="desktop-break"> нужна всего одна маленькая пауза.</p>
+          <p class="invitation">Нажми на солнышко. Услышь тихое созвучие.<br>Возьми с собой одну добрую мысль.</p>
+          <div class="handwritten">Никаких подвигов. Можно начать с себя. <span aria-hidden="true">↗</span></div>
+          <svg class="garden" viewBox="0 0 300 110" aria-hidden="true"><path d="M20 100H280M71 99Q76 63 61 33M73 79Q45 79 43 57Q67 55 73 79M73 67Q98 65 100 44Q76 46 73 67M222 99Q215 65 233 36M222 79Q198 77 195 57Q219 57 222 79"/><g class="petals"><ellipse cx="61" cy="20" rx="9" ry="17"/><ellipse cx="61" cy="20" rx="9" ry="17" transform="rotate(60 61 33)"/><ellipse cx="61" cy="20" rx="9" ry="17" transform="rotate(120 61 33)"/><ellipse cx="61" cy="20" rx="9" ry="17" transform="rotate(180 61 33)"/><ellipse cx="61" cy="20" rx="9" ry="17" transform="rotate(240 61 33)"/><ellipse cx="61" cy="20" rx="9" ry="17" transform="rotate(300 61 33)"/></g><circle cx="61" cy="33" r="8"/><path d="M145 99V75M133 86L145 75L157 86M169 98Q170 83 181 80"/><g class="little-flower"><circle cx="233" cy="25" r="9"/><circle cx="245" cy="34" r="9"/><circle cx="240" cy="48" r="9"/><circle cx="226" cy="48" r="9"/><circle cx="221" cy="34" r="9"/></g><circle cx="233" cy="36" r="6"/></svg>
+        </div>
+        <div class="machine">
+          <div class="machine-heading"><span>ТВОЯ МАЛЕНЬКАЯ ПАУЗА</span><span class="live-dot">здесь и сейчас</span></div>
+          <fieldset class="modes"><legend class="sr-only">Для кого добрая мысль</legend><label><input type="radio" name="mode" value="self" checked><span>Для себя</span></label><label><input type="radio" name="mode" value="others"><span>Для других</span></label><label><input type="radio" name="mode" value="world"><span>Для мира</span></label></fieldset>
+          <div class="sun-area"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><span class="spark spark-one" aria-hidden="true">✧</span><span class="spark spark-two" aria-hidden="true">✦</span><button id="beep" class="sun" aria-label="Получить добрую мысль и послушать звук"><svg viewBox="0 0 110 72" aria-hidden="true"><path d="M25 25Q32 15 39 25M71 25Q78 15 85 25M38 44Q55 62 72 44"/><ellipse cx="24" cy="37" rx="10" ry="5"/><ellipse cx="86" cy="37" rx="10" ry="5"/></svg><span>чуть-чуть тепла</span></button></div>
+          <p class="button-note">нажми на солнышко <span>или <kbd>пробел</kbd></span></p>
+          <article class="message" aria-live="polite" aria-atomic="true">
+            <span class="message-label" id="message-label">МЕСТО ДЛЯ ТЁПЛОЙ МЫСЛИ</span>
+            <h2 id="message-title">Тебе тоже можно быть<br>к себе добрее.</h2>
+            <p id="message-action">Побудь здесь минутку. Никому ничего не нужно доказывать.</p>
+          </article>
+          <div class="message-tools"><span id="session-note">Одна пауза уже имеет значение</span><button id="copy" aria-label="Скопировать добрую мысль">↗ Поделиться теплом</button></div>
+          <div class="sound-settings"><label for="sound">Звучание<select id="sound"><option value="warm">Тёплые клавиши</option><option value="bell">Колокольчики</option><option value="drop">Капельки</option></select></label><label class="volume-label" for="volume">Тише <input id="volume" type="range" min="0" max="60" value="25" aria-label="Громкость"> Громче</label></div>
+          <p id="audio-status" role="status" class="audio-status"></p>
+        </div>
+      </section>
+      <section class="small-things" aria-labelledby="small-title"><div class="section-caption"><span class="eyebrow">ДОБРОТА БЫВАЕТ НЕБОЛЬШОЙ</span><h2 id="small-title">И этого достаточно.</h2></div><div class="little-idea"><span class="idea-icon peach" aria-hidden="true">♡</span><h3>К себе</h3><p>Сделать передышку.<br>Разрешить себе ошибиться.</p></div><div class="little-idea"><span class="idea-icon green" aria-hidden="true">✳</span><h3>К тем, кто рядом</h3><p>Выслушать до конца.<br>Поблагодарить за мелочь.</p></div><div class="little-idea"><span class="idea-icon yellow" aria-hidden="true">☼</span><h3>К большому миру</h3><p>Помочь в чём-то простом.<br>Оставить после себя тепло.</p></div></section>
+    </main>
+    <footer class="footer"><span>Из обычной пикалки — с добром <span aria-hidden="true">♡</span></span><span>Без спешки, оценок и обязательств.</span></footer>
+  </div>
+  <div id="toast" role="status" class="toast" hidden></div>
 </body>
 </html>
