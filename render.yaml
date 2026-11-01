@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: uroko-studio
+    runtime: node
+    plan: free
+    buildCommand: npm ci --ignore-scripts
+    startCommand: npm start
+    healthCheckPath: /api/ai/status
+    envVars:
+      - key: NODE_VERSION
+        value: 24.19.0
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: TUTOR_AI_MODEL
+        value: gpt-4.1-mini
+      - key: TUTOR_AI_API_KEY
+        sync: false
+      - key: TUTOR_AI_ACCESS_CODE
+        sync: false
+      - key: TUTOR_AI_ALLOWED_ORIGINS
+        value: https://lenich3-lab.github.io

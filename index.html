@@ -11,6 +11,8 @@
     <title>Уроко — мастерская репетитора</title>
     <link rel="stylesheet" href="style.css" />
     <script src="app.js" defer></script>
+    <script src="ai.js" defer></script>
+    <link rel="stylesheet" href="ai.css" />
   </head>
   <body>
     <aside class="sidebar" aria-label="Библиотека уроков">
@@ -30,6 +32,7 @@
       <button class="button primary new-lesson" data-action="new">
         <span>＋</span> Новый урок
       </button>
+      <button class="button ai-launch" data-action="ai">✦ Создать с ИИ</button>
       <div class="library-heading">
         <h2>БИБЛИОТЕКА</h2>
         <span id="lesson-count"></span>
@@ -143,6 +146,7 @@
         </footer>
       </div>
     </main>
+    <dialog id="ai-dialog" aria-labelledby="ai-title"></dialog>
     <dialog id="modal" aria-labelledby="modal-title"></dialog>
     <dialog id="presenter" aria-label="Показ презентации">
       <div class="presenter-toolbar">

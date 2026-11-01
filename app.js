@@ -218,6 +218,9 @@ function validateLesson(item, freshIds = false) {
     grade: text(item.grade, 80),
     exam: text(item.exam, 40),
     duration: integer(item.duration, 480),
+    kind: item.kind === "program" ? "program" : "lesson",
+    totalSessions:
+      item.kind === "program" ? integer(item.totalSessions, 200) : 1,
     goal: text(item.goal),
     homework: text(item.homework),
     notes: text(item.notes),
@@ -233,6 +236,7 @@ function validateLesson(item, freshIds = false) {
       title: text(s.title, 180),
       type: text(s.type, 80),
       minutes: integer(s.minutes, 240),
+      sessions: item.kind === "program" ? integer(s.sessions, 200) : 1,
       notes: text(s.notes),
     })),
   };
@@ -337,6 +341,18 @@ function slug(value) {
       .slice(0, 90) || "Урок"
   );
 }
+function isProgram(l = current()) {
+  return l.kind === "program";
+}
+function unitCount(s, l = current()) {
+  return isProgram(l) ? s.sessions : s.minutes;
+}
+function unitText(s, l = current()) {
+  return `${unitCount(s, l)} ${isProgram(l) ? "зан." : "мин"}`;
+}
+function targetCount(l = current()) {
+  return isProgram(l) ? l.totalSessions : l.duration;
+}
 function renderLibrary() {
   const term = $("#search").value.trim().toLocaleLowerCase("ru");
   const lessons = state.lessons.filter((x) =>
@@ -347,7 +363,7 @@ function renderLibrary() {
     lessons
       .map(
         (l) =>
-          `<button class="lesson-link ${l.id === state.activeId ? "active" : ""}" data-action="select-lesson" data-id="${esc(l.id)}" ${l.id === state.activeId ? 'aria-current="page"' : ""}><span class="lesson-icon" aria-hidden="true">▤</span><span><strong>${esc(lessonName(l))}</strong><small>${esc(l.subject)} · ${l.duration} мин</small></span></button>`,
+          `<button class="lesson-link ${l.id === state.activeId ? "active" : ""}" data-action="select-lesson" data-id="${esc(l.id)}" ${l.id === state.activeId ? 'aria-current="page"' : ""}><span class="lesson-icon" aria-hidden="true">▤</span><span><strong>${esc(lessonName(l))}</strong><small>${esc(l.subject)} · ${isProgram(l) ? "Программа" : `${l.duration} мин`}</small></span></button>`,
       )
       .join("") ||
     '<p class="no-results">Уроки не найдены.<br>Попробуйте другой запрос.</p>';
@@ -356,7 +372,11 @@ function renderMetadata() {
   const l = current();
   $("#subject-badge").textContent = l.subject;
   $("#level-badge").textContent = l.grade || "Класс не указан";
-  $("#duration-badge").textContent = `${l.duration} минут`;
+  $("#duration-badge").textContent = isProgram(l)
+    ? `${l.totalSessions} занятий · по ${l.duration} мин`
+    : `${l.duration} минут`;
+  $("#tab-plan").innerHTML =
+    `<span aria-hidden="true">☷</span> ${isProgram(l) ? "Программа" : "План урока"}`;
   $("#exam-badge").textContent = l.exam;
 }
 function render() {
@@ -390,10 +410,12 @@ function options(values, chosen) {
 }
 function renderSummary() {
   const l = current();
-  const total = l.stages.reduce((sum, s) => sum + s.minutes, 0);
+  const total = l.stages.reduce((sum, s) => sum + unitCount(s, l), 0);
+  const target = targetCount(l);
+  const unit = isProgram(l) ? "зан." : "мин";
   const container = $("#timeline");
   if (!container) return;
-  container.innerHTML = `<div class="timeline-label"><span>Распределение времени</span><strong class="${total > l.duration ? "over-time" : ""}">${total} из ${l.duration} мин${total > l.duration ? " · больше плана" : total < l.duration ? ` · резерв ${l.duration - total} мин` : " · всё по плану"}</strong></div><div class="timeline-track">${l.stages.map((s, i) => `<span class="timeline-segment" style="flex:${s.minutes};--tone:${TONES[i % 5]}" title="${esc(s.title)}: ${s.minutes} мин"></span>`).join("")}${total < l.duration ? `<span style="flex:${l.duration - total}"></span>` : ""}</div><div class="timeline-legend">${l.stages
+  container.innerHTML = `<div class="timeline-label"><span>${isProgram(l) ? "Распределение занятий" : "Распределение времени"}</span><strong class="${total > target ? "over-time" : ""}">${total} из ${target} ${unit}${total > target ? " · больше плана" : total < target ? ` · резерв ${target - total} ${unit}` : " · всё по плану"}</strong></div><div class="timeline-track">${l.stages.map((s, i) => `<span class="timeline-segment" style="flex:${unitCount(s, l)};--tone:${TONES[i % 5]}" title="${esc(s.title)}: ${unitText(s, l)}"></span>`).join("")}${total < target ? `<span style="flex:${target - total}"></span>` : ""}</div><div class="timeline-legend">${l.stages
     .slice(0, 5)
     .map((s, i) => `<span style="--tone:${TONES[i % 5]}">${esc(s.type)}</span>`)
     .join("")}</div>`;
@@ -401,11 +423,11 @@ function renderSummary() {
   if (count) count.textContent = l.stages.length;
 }
 function stageHTML(s, i) {
-  return `<details class="stage" data-stage-id="${esc(s.id)}" style="--tone:${TONES[i % 5]};--light:${LIGHTS[i % 5]}" ${openedStage === s.id || (!openedStage && i === 0) ? "open" : ""}><summary><span class="stage-number">${String(i + 1).padStart(2, "0")}</span><span class="stage-summary-text"><strong>${esc(s.title || "Без названия")}</strong><small>${esc(s.type)}</small></span><span class="stage-duration">${s.minutes} мин</span><span class="chevron" aria-hidden="true">⌄</span></summary><div class="stage-body"><div class="stage-fields">${field("Название этапа", "stage.title", s.title, "input", 'maxlength="180"')}${field("Минуты", "stage.minutes", s.minutes, "input", 'type="number" min="1" max="240"')}</div><label class="field"><span>Тип этапа</span><select data-field="stage.type">${options(TYPES, s.type)}</select></label>${field("Конспект и задания", "stage.notes", s.notes, "textarea", 'maxlength="20000" placeholder="Каждая новая строка — отдельная мысль или задание…"')}<span class="field-hint">Эти строки появятся на майнд-карте и в презентации.</span><div class="stage-actions"><button class="mini-button" data-action="move-up" aria-label="Поднять этап" ${i === 0 ? "disabled" : ""}>↑</button><button class="mini-button" data-action="move-down" aria-label="Опустить этап" ${i === current().stages.length - 1 ? "disabled" : ""}>↓</button><button class="mini-button" data-action="duplicate-stage">Дублировать</button><button class="mini-button danger delete-stage" data-action="delete-stage">Удалить</button></div></div></details>`;
+  return `<details class="stage" data-stage-id="${esc(s.id)}" style="--tone:${TONES[i % 5]};--light:${LIGHTS[i % 5]}" ${openedStage === s.id || (!openedStage && i === 0) ? "open" : ""}><summary><span class="stage-number">${String(i + 1).padStart(2, "0")}</span><span class="stage-summary-text"><strong>${esc(s.title || "Без названия")}</strong><small>${esc(s.type)}</small></span><span class="stage-duration">${unitText(s)}</span><span class="chevron" aria-hidden="true">⌄</span></summary><div class="stage-body"><div class="stage-fields">${field("Название этапа", "stage.title", s.title, "input", 'maxlength="180"')}${isProgram() ? field("Занятия", "stage.sessions", s.sessions, "input", 'type="number" min="1" max="200"') : field("Минуты", "stage.minutes", s.minutes, "input", 'type="number" min="1" max="240"')}</div><label class="field"><span>Тип этапа</span><select data-field="stage.type">${options(TYPES, s.type)}</select></label>${field("Конспект и задания", "stage.notes", s.notes, "textarea", 'maxlength="20000" placeholder="Каждая новая строка — отдельная мысль или задание…"')}<span class="field-hint">Эти строки появятся на майнд-карте и в презентации.</span><div class="stage-actions"><button class="mini-button" data-action="move-up" aria-label="Поднять этап" ${i === 0 ? "disabled" : ""}>↑</button><button class="mini-button" data-action="move-down" aria-label="Опустить этап" ${i === current().stages.length - 1 ? "disabled" : ""}>↓</button><button class="mini-button" data-action="duplicate-stage">Дублировать</button>${isProgram() ? `<button class="mini-button" data-action="ai-module">✦ Создать урок</button>` : ""}<button class="mini-button danger delete-stage" data-action="delete-stage">Удалить</button></div></div></details>`;
 }
 function renderPlan() {
   const l = current();
-  return `<div class="plan-layout"><section><div class="section-heading"><h2>Сценарий урока <small><span id="stage-count">${l.stages.length}</span> этапов</small></h2><span>От первого вопроса до результата</span></div><div class="timeline" id="timeline"></div><div id="stages">${l.stages.map(stageHTML).join("") || '<div class="empty-state">Пока нет этапов.<br>Добавьте первый — с него начнётся ваш урок.</div>'}</div><button class="add-stage" data-action="add-stage">＋ Добавить этап урока</button></section><aside class="inspector" aria-label="Настройки и заметки урока"><section class="card"><h2><span aria-hidden="true">⌑</span> Параметры урока</h2><label class="field"><span>Предмет</span><select data-field="subject">${options(SUBJECTS, l.subject)}</select></label><div class="details-row">${field("Класс", "grade", l.grade, "input", 'maxlength="80"')}<label class="field"><span>Формат</span><select data-field="exam">${options(["ЕГЭ", "ОГЭ", "Школьная программа"], l.exam)}</select></label></div>${field("Продолжительность, мин", "duration", l.duration, "input", 'type="number" min="1" max="480"')}</section><section class="card"><h2><span aria-hidden="true">◎</span> Цель урока</h2>${field("Что ученик сможет после урока?", "goal", l.goal, "textarea", 'maxlength="20000" class="goal-input" placeholder="Конкретный результат…"')}</section><section class="card"><h2><span aria-hidden="true">⌂</span> Домашнее задание</h2>${field("Закрепляем материал", "homework", l.homework, "textarea", 'maxlength="20000" placeholder="Задания для самостоятельной работы…"')}</section><section class="card"><h2><span aria-hidden="true">✎</span> Заметки для себя</h2>${field("В презентацию не попадут", "notes", l.notes, "textarea", 'maxlength="20000" placeholder="Что подготовить или учесть…"')}</section><div class="preparation-note"><strong>План уже становится материалом</strong>Переключитесь на карту, чтобы увидеть связи, или на слайды, чтобы провести урок.</div></aside></div>`;
+  return `<div class="plan-layout"><section><div class="section-heading"><h2>${isProgram(l) ? "Стратегия подготовки" : "Сценарий урока"} <small><span id="stage-count">${l.stages.length}</span> ${isProgram(l) ? "модулей" : "этапов"}</small></h2><span>От первого вопроса до результата</span></div><div class="timeline" id="timeline"></div><div id="stages">${l.stages.map(stageHTML).join("") || '<div class="empty-state">Пока нет этапов.<br>Добавьте первый — с него начнётся ваш урок.</div>'}</div><button class="add-stage" data-action="add-stage">＋ ${isProgram(l) ? "Добавить модуль" : "Добавить этап урока"}</button></section><aside class="inspector" aria-label="Настройки и заметки урока"><section class="card"><h2><span aria-hidden="true">⌑</span> ${isProgram(l) ? "Параметры программы" : "Параметры урока"}</h2><label class="field"><span>Предмет</span><select data-field="subject">${options(SUBJECTS, l.subject)}</select></label><div class="details-row">${field("Класс", "grade", l.grade, "input", 'maxlength="80"')}<label class="field"><span>Формат</span><select data-field="exam">${options(["ЕГЭ", "ОГЭ", "Школьная программа"], l.exam)}</select></label></div>${isProgram(l) ? field("Всего занятий", "totalSessions", l.totalSessions, "input", 'type="number" min="1" max="200"') : ""}${field(isProgram(l) ? "Одно занятие, мин" : "Продолжительность, мин", "duration", l.duration, "input", 'type="number" min="1" max="480"')}</section><section class="card"><h2><span aria-hidden="true">◎</span> ${isProgram(l) ? "Цель программы" : "Цель урока"}</h2>${field(isProgram(l) ? "Чему научимся за период подготовки?" : "Что ученик сможет после урока?", "goal", l.goal, "textarea", 'maxlength="20000" class="goal-input" placeholder="Конкретный результат…"')}</section><section class="card"><h2><span aria-hidden="true">⌂</span> ${isProgram(l) ? "Самостоятельная работа" : "Домашнее задание"}</h2>${field("Закрепляем материал", "homework", l.homework, "textarea", 'maxlength="20000" placeholder="Задания для самостоятельной работы…"')}</section><section class="card"><h2><span aria-hidden="true">✎</span> Заметки для себя</h2>${field("В презентацию не попадут", "notes", l.notes, "textarea", 'maxlength="20000" placeholder="Что подготовить или учесть…"')}</section><div class="preparation-note"><strong>План уже становится материалом</strong>Переключитесь на карту, чтобы увидеть связи, или на слайды, чтобы провести урок.</div></aside></div>`;
 }
 
 function wrap(value, width) {
@@ -467,7 +489,7 @@ function mapSVG() {
       const cy = y + node.height / 2;
       const rootX = x < 500 ? 575 : 865;
       connectors += `<path d="M${rootX},${center} C${(rootX + edge) / 2},${center} ${(rootX + edge) / 2},${cy} ${edge},${cy}" fill="none" stroke="${TONES[i % 5]}" stroke-width="2" opacity=".65"/>`;
-      boxes += `<g class="map-node" role="button" tabindex="0" data-map-stage="${esc(s.id)}" aria-label="Изменить этап: ${esc(s.title)}"><title>${esc(s.title)} — перейти к редактированию</title><rect x="${x}" y="${y}" width="390" height="${node.height}" rx="13" fill="white" stroke="#e7e2f0"/><rect x="${x}" y="${y}" width="5" height="${node.height}" rx="2" fill="${TONES[i % 5]}"/><text x="${x + 22}" y="${y + 26}" font-family="system-ui,sans-serif" font-size="11" fill="${TONES[i % 5]}">${String(i + 1).padStart(2, "0")} · ${esc(s.type)} · ${s.minutes} мин</text><text font-family="system-ui,sans-serif" font-size="17" font-weight="600" fill="#4a435c">${title.map((t, k) => `<tspan x="${x + 22}" y="${y + 53 + k * 20}">${esc(t)}</tspan>`).join("")}</text><text class="map-note" font-family="system-ui,sans-serif" font-size="12" fill="#7c8091">${body.map((t, k) => `<tspan x="${x + 22}" y="${y + 75 + (title.length - 1) * 20 + k * 18}">${esc(t)}</tspan>`).join("")}</text></g>`;
+      boxes += `<g class="map-node" role="button" tabindex="0" data-map-stage="${esc(s.id)}" aria-label="Изменить этап: ${esc(s.title)}"><title>${esc(s.title)} — перейти к редактированию</title><rect x="${x}" y="${y}" width="390" height="${node.height}" rx="13" fill="white" stroke="#e7e2f0"/><rect x="${x}" y="${y}" width="5" height="${node.height}" rx="2" fill="${TONES[i % 5]}"/><text x="${x + 22}" y="${y + 26}" font-family="system-ui,sans-serif" font-size="11" fill="${TONES[i % 5]}">${String(i + 1).padStart(2, "0")} · ${esc(s.type)} · ${unitText(s, l)}</text><text font-family="system-ui,sans-serif" font-size="17" font-weight="600" fill="#4a435c">${title.map((t, k) => `<tspan x="${x + 22}" y="${y + 53 + k * 20}">${esc(t)}</tspan>`).join("")}</text><text class="map-note" font-family="system-ui,sans-serif" font-size="12" fill="#7c8091">${body.map((t, k) => `<tspan x="${x + 22}" y="${y + 75 + (title.length - 1) * 20 + k * 18}">${esc(t)}</tspan>`).join("")}</text></g>`;
       y += node.height + 30;
     }
   }
@@ -525,11 +547,15 @@ function deck() {
     add(
       s.title || "Без названия",
       s.notes || "Обсудим этот этап вместе.",
-      `Этап ${i + 1} · ${s.minutes} мин`,
+      `${isProgram(l) ? "Модуль" : "Этап"} ${i + 1} · ${unitText(s, l)}`,
     ),
   );
   if (l.homework.trim())
-    add("Практика после урока", l.homework, "Домашнее задание");
+    add(
+      isProgram(l) ? "Самостоятельная работа" : "Практика после урока",
+      l.homework,
+      isProgram(l) ? "На период подготовки" : "Домашнее задание",
+    );
   return slides;
 }
 function slideHTML(slide, index, total, l = current()) {
@@ -629,7 +655,7 @@ function printPlan() {
     );
   win.opener = null;
   win.document.write(
-    `<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>${esc(lessonName())}</title><style>body{font:14px/1.7 system-ui,sans-serif;color:#25283a;max-width:850px;margin:40px auto;padding:0 25px}h1{font-size:32px;line-height:1.2}h2{font-size:19px;margin:26px 0 8px}h3{font-size:15px}p{white-space:pre-wrap;overflow-wrap:anywhere}.meta{color:#7b7389}section{border-top:1px solid #ded8e9;margin-top:20px;padding-top:10px}button{padding:10px 18px;cursor:pointer;background:#7255d8;color:white;border:0;border-radius:7px}@media print{body{margin:0;max-width:none}button{display:none}h2,h3{break-after:avoid}section{break-inside:auto}@page{margin:20mm}}</style></head><body><button id="print">Печать / сохранить PDF</button><h1>${esc(lessonName())}</h1><p class="meta">${esc(l.subject)} · ${esc(l.grade)} · ${esc(l.exam)} · ${l.duration} мин</p><h2>Цель урока</h2><p>${esc(l.goal || "Не указана")}</p>${l.stages.map((s, i) => `<section><h2>${i + 1}. ${esc(s.title)} <span class="meta">· ${s.minutes} мин</span></h2><p class="meta">${esc(s.type)}</p><p>${esc(s.notes || "Конспект не добавлен")}</p></section>`).join("")}<section><h2>Домашнее задание</h2><p>${esc(l.homework || "Не задано")}</p></section><script>document.querySelector('#print').onclick=()=>window.print();</script></body></html>`,
+    `<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>${esc(lessonName())}</title><style>body{font:14px/1.7 system-ui,sans-serif;color:#25283a;max-width:850px;margin:40px auto;padding:0 25px}h1{font-size:32px;line-height:1.2}h2{font-size:19px;margin:26px 0 8px}h3{font-size:15px}p{white-space:pre-wrap;overflow-wrap:anywhere}.meta{color:#7b7389}section{border-top:1px solid #ded8e9;margin-top:20px;padding-top:10px}button{padding:10px 18px;cursor:pointer;background:#7255d8;color:white;border:0;border-radius:7px}@media print{body{margin:0;max-width:none}button{display:none}h2,h3{break-after:avoid}section{break-inside:auto}@page{margin:20mm}}</style></head><body><button id="print">Печать / сохранить PDF</button><h1>${esc(lessonName())}</h1><p class="meta">${esc(l.subject)} · ${esc(l.grade)} · ${esc(l.exam)} · ${isProgram(l) ? `${l.totalSessions} занятий по ${l.duration} мин` : `${l.duration} мин`}</p><h2>${isProgram(l) ? "Цель программы" : "Цель урока"}</h2><p>${esc(l.goal || "Не указана")}</p>${l.stages.map((s, i) => `<section><h2>${i + 1}. ${esc(s.title)} <span class="meta">· ${unitText(s, l)}</span></h2><p class="meta">${esc(s.type)}</p><p>${esc(s.notes || "Конспект не добавлен")}</p></section>`).join("")}<section><h2>${isProgram(l) ? "Самостоятельная работа" : "Домашнее задание"}</h2><p>${esc(l.homework || "Не задано")}</p></section><script>document.querySelector('#print').onclick=()=>window.print();</script></body></html>`,
   );
   win.document.close();
   closeModal();
@@ -711,7 +737,13 @@ const actions = {
   "add-stage": () => {
     if (current().stages.length >= 40)
       return notify("В уроке может быть до 40 этапов.");
-    const s = stage("Новый этап", 5, "Практика", "");
+    const s = stage(
+      isProgram() ? "Новый модуль" : "Новый этап",
+      5,
+      "Практика",
+      "",
+    );
+    s.sessions = 1;
     current().stages.push(s);
     openedStage = s.id;
     changed();
@@ -810,7 +842,7 @@ const actions = {
   guide: () =>
     modal(
       "Один урок — три вида",
-      `<ol class="guide-list"><li><strong>Соберите план.</strong> Задайте цель, добавьте этапы и их длительность. В конспекте пишите каждую мысль или задание с новой строки.</li><li><strong>Посмотрите на связи.</strong> Майнд-карта показывает тему, этапы и конспект. Нажатие на ветку возвращает к её редактированию.</li><li><strong>Проведите урок.</strong> Слайды собираются из тех же текстов. Выберите тему оформления и нажмите «Начать показ».</li><li><strong>Сохраните копию.</strong> Данные остаются в этом браузере. Экспортируйте JSON для резервной копии или переноса на другой компьютер.</li></ol><p class="help-callout">Это первая версия редактора без аккаунтов, облачной синхронизации и генерации через ИИ. Примеры можно менять. Задания и требования экзаменов проверяйте по актуальным материалам ФИПИ.</p>`,
+      `<ol class="guide-list"><li><strong>Соберите план.</strong> Задайте цель, добавьте этапы и их длительность. В конспекте пишите каждую мысль или задание с новой строки.</li><li><strong>Посмотрите на связи.</strong> Майнд-карта показывает тему, этапы и конспект. Нажатие на ветку возвращает к её редактированию.</li><li><strong>Проведите урок.</strong> Слайды собираются из тех же текстов. Выберите тему оформления и нажмите «Начать показ».</li><li><strong>Сохраните копию.</strong> Данные остаются в этом браузере. Экспортируйте JSON для резервной копии или переноса на другой компьютер.</li></ol><p class="help-callout">Это первая версия редактора без аккаунтов и облачной синхронизации. Генерация ИИ требует подключения сервера. Примеры можно менять. Задания и требования экзаменов проверяйте по актуальным материалам ФИПИ.</p>`,
     ),
 };
 
@@ -856,8 +888,8 @@ document.addEventListener("input", (event) => {
         value || "Без названия";
     if (name === "stage.type")
       $(".stage-summary-text small", card).textContent = value;
-    if (name === "stage.minutes")
-      $(".stage-duration", card).textContent = `${value} мин`;
+    if (name === "stage.minutes" || name === "stage.sessions")
+      $(".stage-duration", card).textContent = unitText(s);
     renderSummary();
   } else {
     current()[name] = value;
@@ -865,7 +897,9 @@ document.addEventListener("input", (event) => {
       renderLibrary();
       document.title = `${lessonName()} — Уроко`;
     }
-    if (["subject", "grade", "exam", "duration"].includes(name)) {
+    if (
+      ["subject", "grade", "exam", "duration", "totalSessions"].includes(name)
+    ) {
       renderMetadata();
       renderSummary();
       renderLibrary();
@@ -878,8 +912,10 @@ document.addEventListener("focusout", (event) => {
   if (el.dataset.field && el.type === "number" && !el.checkValidity()) {
     const s = el.closest("[data-stage-id]");
     el.value = s
-      ? current().stages.find((x) => x.id === s.dataset.stageId).minutes
-      : current().duration;
+      ? current().stages.find((x) => x.id === s.dataset.stageId)[
+          el.dataset.field.slice(6)
+        ]
+      : current()[el.dataset.field];
     notify("Длительность должна быть целым числом в указанном диапазоне.");
   }
 });

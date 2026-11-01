@@ -1,14 +1,17 @@
 {
   "name": "uroko-studio",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Редактор уроков, майнд-карт и презентаций для репетиторов",
   "scripts": {
-    "start": "python3 -m http.server 8000 --bind 127.0.0.1",
-    "check": "node --check app.js",
-    "test": "node tests/smoke.cjs"
+    "start": "node --use-env-proxy --use-system-ca --env-file-if-exists=.env server.cjs",
+    "check": "node --check app.js && node --check ai.js && node --check server.cjs && node --check lib/generation.cjs",
+    "test": "node --test --test-concurrency=1 tests/*.cjs"
   },
   "devDependencies": {
     "playwright": "1.62.1"
+  },
+  "engines": {
+    "node": ">=24.5.0"
   }
 }

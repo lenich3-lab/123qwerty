@@ -9,22 +9,8 @@ const KEY = "uroko.workspace.v1";
 let server, browser, base;
 const failures = [];
 before(async () => {
-  const root = path.resolve(__dirname, "..");
-  server = http.createServer((req, res) => {
-    const name = req.url.split("?")[0];
-    const files = {
-      "/": ["index.html", "text/html"],
-      "/style.css": ["style.css", "text/css"],
-      "/app.js": ["app.js", "text/javascript"],
-    };
-    if (!files[name]) {
-      res.writeHead(404);
-      return res.end();
-    }
-    const [file, type] = files[name];
-    res.setHeader("Content-Type", `${type}; charset=utf-8`);
-    res.end(fs.readFileSync(path.join(root, file)));
-  });
+  const { createServer } = require("../server.cjs");
+  server = createServer({ apiKey: "", accessCode: "", host: "127.0.0.1" });
   await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
   base = `http://127.0.0.1:${server.address().port}`;
   const executablePath =
@@ -238,13 +224,11 @@ test("JSON переносит уроки без замены существую�
   const json = await exportFile(page, "export-lesson");
   const exported = JSON.parse(json);
   assert.equal(exported.lessons.length, 1);
-  await page
-    .locator("#import-file")
-    .setInputFiles({
-      name: "lesson.json",
-      mimeType: "application/json",
-      buffer: Buffer.from(json),
-    });
+  await page.locator("#import-file").setInputFiles({
+    name: "lesson.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(json),
+  });
   await page.waitForFunction(
     () => document.querySelector("#lesson-count").textContent === "4",
   );
@@ -254,26 +238,22 @@ test("JSON переносит уроки без замены существую�
     state.lessons[0].stages[0].notes,
     exported.lessons[0].stages[0].notes,
   );
-  await page
-    .locator("#import-file")
-    .setInputFiles({
-      name: "bad.json",
-      mimeType: "application/json",
-      buffer: Buffer.from("{broken"),
-    });
+  await page.locator("#import-file").setInputFiles({
+    name: "bad.json",
+    mimeType: "application/json",
+    buffer: Buffer.from("{broken"),
+  });
   await page.waitForFunction(() =>
     document.querySelector("#toast").textContent.includes("Импорт не выполнен"),
   );
   assert.equal(await page.locator(".lesson-link").count(), 4);
   const invalid = JSON.parse(json);
   invalid.lessons[0].stages[0].minutes = -1;
-  await page
-    .locator("#import-file")
-    .setInputFiles({
-      name: "bad-duration.json",
-      mimeType: "application/json",
-      buffer: Buffer.from(JSON.stringify(invalid)),
-    });
+  await page.locator("#import-file").setInputFiles({
+    name: "bad-duration.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(invalid)),
+  });
   await page.waitForFunction(() =>
     document
       .querySelector("#toast")
