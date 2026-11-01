@@ -1,50 +1,179 @@
 <!doctype html>
 <html lang="ru">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f6f2e9">
-  <meta name="description" content="Маленькая пауза для доброты. Тихий звук, тёплые слова и одно простое действие для себя или другого человека.">
-  <title>Чуть добрее — пикалка с теплом</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="app.js" defer></script>
-</head>
-<body>
-  <div class="page">
-    <header class="header">
-      <a href="./" class="brand"><span class="brand-flower" aria-hidden="true">✳︎</span> чуть добрее<span class="brand-dot">.</span></a>
-      <span class="header-note">маленькая пикалка с большим теплом</span>
-      <button id="mute" class="mute" aria-pressed="false">♫ <span>Звук включён</span></button>
-    </header>
-    <main>
-      <section class="hero" aria-labelledby="title">
-        <div class="intro">
-          <span class="eyebrow"><span></span> НАЧНЁМ С МАЛЕНЬКОГО</span>
-          <h1 id="title">Мир мягче,<br>когда мы<br><em>чуть добрее.</em></h1>
-          <p class="intro-text">Иногда между раздражением и тёплым словом<br class="desktop-break"> нужна всего одна маленькая пауза.</p>
-          <p class="invitation">Нажми на солнышко. Услышь тихое созвучие.<br>Возьми с собой одну добрую мысль.</p>
-          <div class="handwritten">Никаких подвигов. Можно начать с себя. <span aria-hidden="true">↗</span></div>
-          <svg class="garden" viewBox="0 0 300 110" aria-hidden="true"><path d="M20 100H280M71 99Q76 63 61 33M73 79Q45 79 43 57Q67 55 73 79M73 67Q98 65 100 44Q76 46 73 67M222 99Q215 65 233 36M222 79Q198 77 195 57Q219 57 222 79"/><g class="petals"><ellipse cx="61" cy="20" rx="9" ry="17"/><ellipse cx="61" cy="20" rx="9" ry="17" transform="rotate(60 61 33)"/><ellipse cx="61" cy="20" rx="9" ry="17" transform="rotate(120 61 33)"/><ellipse cx="61" cy="20" rx="9" ry="17" transform="rotate(180 61 33)"/><ellipse cx="61" cy="20" rx="9" ry="17" transform="rotate(240 61 33)"/><ellipse cx="61" cy="20" rx="9" ry="17" transform="rotate(300 61 33)"/></g><circle cx="61" cy="33" r="8"/><path d="M145 99V75M133 86L145 75L157 86M169 98Q170 83 181 80"/><g class="little-flower"><circle cx="233" cy="25" r="9"/><circle cx="245" cy="34" r="9"/><circle cx="240" cy="48" r="9"/><circle cx="226" cy="48" r="9"/><circle cx="221" cy="34" r="9"/></g><circle cx="233" cy="36" r="6"/></svg>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f6f7fb" />
+    <meta
+      name="description"
+      content="Мастерская уроков для репетиторов: план, конспект, майнд-карта и презентация в одном месте."
+    />
+    <title>Уроко — мастерская репетитора</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <aside class="sidebar" aria-label="Библиотека уроков">
+      <a class="brand" href="./"
+        ><span class="brand-symbol" aria-hidden="true">у</span>уроко<span
+          class="brand-period"
+          >.</span
+        ><span class="beta">BETA</span></a
+      >
+      <div class="workspace">
+        <span class="avatar">М</span>
+        <div>
+          <strong>Моя мастерская</strong><span>Личное пространство</span>
         </div>
-        <div class="machine">
-          <div class="machine-heading"><span>ТВОЯ МАЛЕНЬКАЯ ПАУЗА</span><span class="live-dot">здесь и сейчас</span></div>
-          <fieldset class="modes"><legend class="sr-only">Для кого добрая мысль</legend><label><input type="radio" name="mode" value="self" checked><span>Для себя</span></label><label><input type="radio" name="mode" value="others"><span>Для других</span></label><label><input type="radio" name="mode" value="world"><span>Для мира</span></label></fieldset>
-          <div class="sun-area"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><span class="spark spark-one" aria-hidden="true">✧</span><span class="spark spark-two" aria-hidden="true">✦</span><button id="beep" class="sun" aria-label="Получить добрую мысль и послушать звук"><svg viewBox="0 0 110 72" aria-hidden="true"><path d="M25 25Q32 15 39 25M71 25Q78 15 85 25M38 44Q55 62 72 44"/><ellipse cx="24" cy="37" rx="10" ry="5"/><ellipse cx="86" cy="37" rx="10" ry="5"/></svg><span>чуть-чуть тепла</span></button></div>
-          <p class="button-note">нажми на солнышко <span>или <kbd>пробел</kbd></span></p>
-          <article class="message" aria-live="polite" aria-atomic="true">
-            <span class="message-label" id="message-label">МЕСТО ДЛЯ ТЁПЛОЙ МЫСЛИ</span>
-            <h2 id="message-title">Тебе тоже можно быть<br>к себе добрее.</h2>
-            <p id="message-action">Побудь здесь минутку. Никому ничего не нужно доказывать.</p>
-          </article>
-          <div class="message-tools"><span id="session-note">Одна пауза уже имеет значение</span><button id="copy" aria-label="Скопировать добрую мысль">↗ Поделиться теплом</button></div>
-          <div class="sound-settings"><label for="sound">Звучание<select id="sound"><option value="warm">Тёплые клавиши</option><option value="bell">Колокольчики</option><option value="drop">Капельки</option></select></label><label class="volume-label" for="volume">Тише <input id="volume" type="range" min="0" max="60" value="25" aria-label="Громкость"> Громче</label></div>
-          <p id="audio-status" role="status" class="audio-status"></p>
+        <span class="workspace-mark" aria-hidden="true">⌘</span>
+      </div>
+      <button class="button primary new-lesson" data-action="new">
+        <span>＋</span> Новый урок
+      </button>
+      <div class="library-heading">
+        <h2>БИБЛИОТЕКА</h2>
+        <span id="lesson-count"></span>
+      </div>
+      <label class="search"
+        ><span aria-hidden="true">⌕</span
+        ><input
+          id="search"
+          type="search"
+          aria-label="Найти урок"
+          placeholder="Найти урок…"
+      /></label>
+      <nav id="lesson-list" aria-label="Уроки"></nav>
+      <div class="sidebar-bottom">
+        <div class="tip-icon" aria-hidden="true">✳</div>
+        <strong>Один материал. Три взгляда.</strong>
+        <p>Начните с плана — карта и слайды соберутся из него.</p>
+        <button data-action="guide" class="text-button">
+          Как это работает <span>↗</span>
+        </button>
+      </div>
+      <div class="local-note">
+        <span class="status-dot"></span> Данные на этом устройстве<button
+          data-action="backup"
+          class="text-button"
+        >
+          Скачать резервную копию ↓
+        </button>
+      </div>
+    </aside>
+    <main class="main">
+      <header class="topbar">
+        <span class="breadcrumb"
+          >Моя мастерская <span>/</span> <strong>Редактор урока</strong></span
+        >
+        <div class="top-actions">
+          <span id="save-status" role="status" class="save-status"
+            >Сохранено на устройстве</span
+          ><button data-action="import" class="button subtle">↑ Импорт</button
+          ><button data-action="export" class="button outline">
+            ↓ Экспорт
+          </button>
         </div>
-      </section>
-      <section class="small-things" aria-labelledby="small-title"><div class="section-caption"><span class="eyebrow">ДОБРОТА БЫВАЕТ НЕБОЛЬШОЙ</span><h2 id="small-title">И этого достаточно.</h2></div><div class="little-idea"><span class="idea-icon peach" aria-hidden="true">♡</span><h3>К себе</h3><p>Сделать передышку.<br>Разрешить себе ошибиться.</p></div><div class="little-idea"><span class="idea-icon green" aria-hidden="true">✳</span><h3>К тем, кто рядом</h3><p>Выслушать до конца.<br>Поблагодарить за мелочь.</p></div><div class="little-idea"><span class="idea-icon yellow" aria-hidden="true">☼</span><h3>К большому миру</h3><p>Помочь в чём-то простом.<br>Оставить после себя тепло.</p></div></section>
+      </header>
+      <div class="editor">
+        <section class="lesson-heading" aria-label="Название урока">
+          <div class="heading-top">
+            <span class="eyebrow">ПРОСТРАНСТВО ДЛЯ ХОРОШЕГО УРОКА</span
+            ><button
+              data-action="lesson-menu"
+              class="icon-button"
+              aria-label="Действия с уроком"
+            >
+              •••
+            </button>
+          </div>
+          <label class="sr-only" for="lesson-title">Название урока</label
+          ><input
+            id="lesson-title"
+            class="lesson-title"
+            data-field="title"
+            maxlength="180"
+            placeholder="Название урока"
+          />
+          <div class="lesson-meta">
+            <span id="subject-badge" class="subject-badge"></span
+            ><span id="level-badge"></span><span class="meta-dot">·</span
+            ><span id="duration-badge"></span><span class="meta-dot">·</span
+            ><span id="exam-badge"></span>
+          </div>
+        </section>
+        <div class="view-bar">
+          <div class="tabs" role="tablist" aria-label="Вид материала">
+            <button
+              class="tab active"
+              role="tab"
+              id="tab-plan"
+              aria-selected="true"
+              aria-controls="view-panel"
+              data-view="plan"
+            >
+              <span aria-hidden="true">☷</span> План урока</button
+            ><button
+              class="tab"
+              role="tab"
+              id="tab-map"
+              aria-selected="false"
+              aria-controls="view-panel"
+              tabindex="-1"
+              data-view="map"
+            >
+              <span aria-hidden="true">⌘</span> Майнд-карта</button
+            ><button
+              class="tab"
+              role="tab"
+              id="tab-slides"
+              aria-selected="false"
+              aria-controls="view-panel"
+              tabindex="-1"
+              data-view="slides"
+            >
+              <span aria-hidden="true">▣</span> Презентация
+            </button>
+          </div>
+          <span class="connected"><span></span> Всё связано</span>
+        </div>
+        <div id="view-panel" role="tabpanel" aria-labelledby="tab-plan"></div>
+        <footer class="editor-footer">
+          <span>Меньше подготовки с нуля. Больше внимания ученику.</span
+          ><span>Уроко · мастерская репетитора</span>
+        </footer>
+      </div>
     </main>
-    <footer class="footer"><span>Из обычной пикалки — с добром <span aria-hidden="true">♡</span></span><span>Без спешки, оценок и обязательств.</span></footer>
-  </div>
-  <div id="toast" role="status" class="toast" hidden></div>
-</body>
+    <dialog id="modal" aria-labelledby="modal-title"></dialog>
+    <dialog id="presenter" aria-label="Показ презентации">
+      <div class="presenter-toolbar">
+        <span id="presenter-counter"></span><span>← → листать · Esc выйти</span
+        ><button class="button outline" data-action="close-presenter">
+          Закрыть ×
+        </button>
+      </div>
+      <div id="presenter-slide"></div>
+      <div class="presenter-nav">
+        <button
+          class="button outline"
+          data-action="previous-slide"
+          aria-label="Предыдущий слайд"
+        >
+          ← Назад</button
+        ><button
+          class="button primary"
+          data-action="next-slide"
+          aria-label="Следующий слайд"
+        >
+          Далее →
+        </button>
+      </div>
+    </dialog>
+    <input
+      id="import-file"
+      type="file"
+      accept=".json,application/json"
+      hidden
+    />
+    <div id="toast" class="toast" role="status" hidden></div>
+  </body>
 </html>

@@ -1,0 +1,14 @@
+{
+  "name": "uroko-studio",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Редактор уроков, майнд-карт и презентаций для репетиторов",
+  "scripts": {
+    "start": "python3 -m http.server 8000 --bind 127.0.0.1",
+    "check": "node --check app.js",
+    "test": "node tests/smoke.cjs"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
+  }
+}
