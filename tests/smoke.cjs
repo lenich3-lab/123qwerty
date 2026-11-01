@@ -377,3 +377,95 @@ test("Мобильная вёрстка и клавиатурная навига
     }
   }
 });
+
+test("PDF карты: целая карта на одном листе, включая высокую карту", async (t) => {
+  const page = await pageFor(t);
+  async function openPDF(action) {
+    const pending = page.context().waitForEvent("page");
+    await page.locator(`[data-action="${action}"]`).last().click();
+    const popup = await pending;
+    await popup.waitForLoadState();
+    popup.on("pageerror", (e) => failures.push(e.message));
+    return popup;
+  }
+  await page.getByRole("tab", { name: "Майнд-карта" }).click();
+  await page.locator('[data-action="zoom-out"]').click();
+  const map = await openPDF("export-map-pdf");
+  assert.equal(await map.locator("svg [data-map-stage]").count(), 5);
+  assert((await map.locator("svg").textContent()).includes("Дискриминант"));
+  await map.evaluate(() => {
+    window.print = () => {
+      window.didPrint = true;
+    };
+  });
+  await map.locator("#print").click();
+  assert(await map.evaluate(() => window.didPrint));
+  const pdf = await map.pdf({ preferCSSPageSize: true, printBackground: true });
+  assert.equal(
+    (pdf.toString("latin1").match(/\/Type\s*\/Page\b/g) || []).length,
+    1,
+  );
+  await page.getByRole("tab", { name: "План урока" }).click();
+  await page
+    .locator('.stage[open] [data-field="stage.notes"]')
+    .fill(
+      Array.from(
+        { length: 120 },
+        (_, i) => `Строка ${i + 1}: развёрнутый конспект для высокой карты.`,
+      ).join("\n"),
+    );
+  await page.locator('[data-action="export"]').click();
+  const tall = await openPDF("export-map-pdf");
+  assert((await tall.locator("svg").textContent()).includes("Строка 120"));
+  await tall.emulateMedia({ media: "print" });
+  const dimensions = await tall.locator(".pdf-map").boundingBox();
+  assert(dimensions.height > dimensions.width);
+  const tallPDF = await tall.pdf({
+    preferCSSPageSize: true,
+    printBackground: true,
+  });
+  assert.equal(
+    (tallPDF.toString("latin1").match(/\/Type\s*\/Page\b/g) || []).length,
+    1,
+  );
+});
+
+test("PDF презентации: все слайды по одному на страницу, три оформления", async (t) => {
+  const page = await pageFor(t);
+  await page.locator('[data-field="notes"]').fill("PRIVATE_PDF_NOTE");
+  await page.getByRole("tab", { name: "Презентация" }).click();
+  const count = await page.locator(".thumbnail").count();
+  await page.locator(".thumbnail").nth(3).click();
+  for (const theme of ["lavender", "sage", "midnight"]) {
+    await page.locator("#theme").selectOption(theme);
+    const pending = page.context().waitForEvent("page");
+    await page.locator('[data-action="export-slides-pdf"]').click();
+    const popup = await pending;
+    await popup.waitForLoadState();
+    popup.on("pageerror", (e) => failures.push(e.message));
+    assert.equal(await popup.locator(".slide").count(), count);
+    assert.equal(await popup.locator(`.slide.theme-${theme}`).count(), count);
+    assert(
+      !(await popup.locator("body").textContent()).includes("PRIVATE_PDF_NOTE"),
+    );
+    await popup.emulateMedia({ media: "print" });
+    assert.equal(await popup.locator(".pdf-toolbar").isVisible(), false);
+    assert(
+      await popup
+        .locator(".slide")
+        .evaluateAll((slides) =>
+          slides.every((s) => s.scrollHeight <= s.clientHeight + 1),
+        ),
+    );
+    const pdf = await popup.pdf({
+      preferCSSPageSize: true,
+      printBackground: true,
+    });
+    assert.equal(
+      (pdf.toString("latin1").match(/\/Type\s*\/Page\b/g) || []).length,
+      count,
+      theme,
+    );
+    await popup.close();
+  }
+});
